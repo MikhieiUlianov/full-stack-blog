@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import WritePage from "./pages/WritePage";
-import RootLayout from "./components/layouts/RootLayout";
+import RootLayout from "./layouts/RootLayout";
 import LoginPage from "./pages/LoginPage";
 import Homepage from "./pages/Homepage";
 import PostListPage from "./pages/SinglePostPage";
