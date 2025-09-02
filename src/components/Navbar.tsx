@@ -41,7 +41,7 @@ const Navbar = () => {
           </div>
         </div>
         <div
-          className={`w-full h-screen bg-[#e6e6ff]  flex-col items-center justify-center gap-8 font-medium text-lg absolute top-16 transition-all ease-in-out ${
+          className={`w-full h-screen bg-[#e6e6ff] z-10  flex-col items-center justify-center gap-8 font-medium text-lg absolute top-16 transition-all ease-in-out ${
             open ? "-right-0 flex" : "-right-[100%] hidden"
           }`}
         >
