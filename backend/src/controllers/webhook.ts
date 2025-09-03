@@ -26,9 +26,7 @@ export const clerkWebHook = async (req: Request, res: Response) => {
   if (!WEBHOOK_SECRET) throw new Error("Webhook secret needed!");
 
   const payload = req.body;
-
   const headers = req.headers as Record<string, string>;
-
   const wh = new Webhook(WEBHOOK_SECRET);
 
   let evt: SvixEvent<ClerkUserData>;
