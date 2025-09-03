@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 
 import express, { NextFunction, Request, Response } from "express";
 import { clerkMiddleware } from "@clerk/express";
+import cors from "cors";
 
 import userRouter from "./routes/user.js";
 import postRouter from "./routes/post.js";
@@ -13,8 +14,14 @@ import connectDB from "./lib/connectDB.js";
 interface CustomError extends Error {
   status?: number;
 }
-dotenv.config();
+
 const app = express();
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+  })
+);
+dotenv.config();
 app.use(clerkMiddleware() as unknown as express.RequestHandler);
 app.use("/webhooks", webHooksRouter);
 app.use(express.json());
@@ -34,7 +41,7 @@ app.use(
     });
   }
 );
-
+//CHECK KEYS
 app.listen(3000, () => {
   /*   connectDB(); */
   console.log("connect");

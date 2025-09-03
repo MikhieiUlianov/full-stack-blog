@@ -19,14 +19,17 @@
   },
   "dependencies": {
     "@clerk/express": "^1.7.28",
+    "@tanstack/react-query": "^4.40.1",
     "ansi-regex": "^5.0.1",
     "ansi-styles": "^4.3.0",
+    "axios": "^1.11.0",
     "body-parser": "^2.2.0",
     "bson": "^6.10.4",
     "chalk": "^4.1.2",
     "cliui": "^8.0.1",
     "color-convert": "^2.0.1",
     "color-name": "^1.1.4",
+    "cors": "^2.8.5",
     "debug": "^4.4.1",
     "emoji-regex": "^8.0.0",
     "escalade": "^3.2.0",
@@ -63,6 +66,7 @@
     "yargs-parser": "^21.1.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "concurrently": "^9.2.1",
     "ts-node": "^10.9.2",

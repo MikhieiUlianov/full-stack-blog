@@ -41,9 +41,13 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
 
   if (!user) return res.status(401).json({ message: "User not found." });
 
-  const post = await Post.findOneAndDelete({
+  const deletePost = await Post.findOneAndDelete({
     _id: req.params.id,
     user: user._id,
   });
+
+  if (!deletePost)
+    return res.status(403).json({ message: "You can delete only your post!" });
+
   res.status(200).json("Post has been deleted");
 };
