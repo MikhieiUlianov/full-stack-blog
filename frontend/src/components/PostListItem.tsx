@@ -1,38 +1,59 @@
 import { Link } from "react-router-dom";
 import Image from "./Image";
+import { format } from "timeago.js";
 
-const PostListItem = () => {
+interface PostUser {
+  username: string;
+  _id: string;
+}
+
+export interface Post {
+  _id: string;
+  user: PostUser;
+  img?: string;
+  title: string;
+  slug: string;
+  desc?: string;
+  category: string;
+  content: string;
+  isFeatured?: boolean;
+  visit?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PostListItemProps {
+  post: Post;
+}
+
+const PostListItem = ({ post }: PostListItemProps) => {
   return (
     <div className="flex flex-col xl:flex-row gap-8 mb-12">
-      <div className="md:hidden xl:block xl:w-1/3">
-        <Image
-          src={"postImg.jpeg"}
-          className="rounded-2xl object-cover"
-          w={735}
-        />
-      </div>
+      {post.img && (
+        <div className="md:hidden xl:block xl:w-1/3">
+          <Image src={post.img} className="rounded-2xl object-cover" w={735} />
+        </div>
+      )}
       <div className="flex flex-col gap-4 xl:w-2/3">
-        <Link to={`/`} className="text-4xl font-semibold">
-          Web-Development
+        <Link to={`/${post.slug}`} className="text-4xl font-semibold">
+          {post.title}
         </Link>
         <div className="flex items-center gap-2 text-gray-400 text-sm">
           <span>Written by</span>
-          <Link className="text-blue-800" to={`/posts?author=alex`}>
-            alex
+          <Link
+            className="text-blue-800"
+            to={`/posts?author=${post.user.username}`}
+          >
+            {post.user.username}
           </Link>
           <span>on</span>
           <Link to={"/"} className="text-blue-800">
-            Web Development
+            {post.category}
           </Link>
-          <span>2 days ago</span>
+          <span>{format(post.createdAt)}</span>
         </div>
-        <p>
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Corrupti
-          voluptatum velit error, eius consequuntur deleniti. Consequatur vel
-          reprehenderit earum, quibusdam possimus ipsum perferendis fugit,
-          blanditiis odio nulla nobis sit assumenda.
-        </p>
-        <Link to={`/`} className="underline text-blue-800 text-sm">
+        <p>{post.desc}</p>
+        <Link to={`/${post.slug}`} className="underline text-blue-800 text-sm">
           Read More
         </Link>
       </div>

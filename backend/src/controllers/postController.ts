@@ -9,12 +9,25 @@ interface AuthRequest extends Request {
   };
 }
 export const getPosts = async (req: Request, res: Response) => {
-  const posts = await Post.find();
-  res.status(200).send(posts);
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 2;
+
+  const posts = await Post.find()
+    .populate("user", "username")
+    .limit(limit)
+    .skip((page - 1) * limit);
+  const totalPosts = await Post.countDocuments();
+
+  const hasMore = page * limit < totalPosts;
+
+  res.status(200).json({ posts, hasMore });
 };
 
 export const getPost = async (req: Request, res: Response) => {
-  const posts = await Post.findOne({ slug: req.params.slug });
+  const posts = await Post.findOne({ slug: req.params.slug }).populate(
+    "user",
+    "username img"
+  );
   res.status(200).send(posts);
 };
 

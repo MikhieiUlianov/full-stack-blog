@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { toast } from "react-toastify";
-import { upload } from "@imagekit/react";
+import { upload, UploadResponse } from "@imagekit/react";
 
 const Upload = ({
   setProgress,
@@ -9,7 +9,7 @@ const Upload = ({
   children,
 }: {
   setProgress: (number: number) => void;
-  onUploadSuccess: (url: string) => void;
+  onUploadSuccess: (data: UploadResponse) => void;
   accept: string;
   children: React.ReactNode;
 }) => {
@@ -54,7 +54,7 @@ const Upload = ({
         abortSignal: abortController.signal,
       });
 
-      if (result.url) onUploadSuccess(result.url);
+      if (result) onUploadSuccess(result);
 
       toast.success("File uploaded!");
     } catch (error) {

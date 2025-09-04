@@ -7,6 +7,7 @@ import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Upload from "../components/Upload";
+import { UploadResponse } from "@imagekit/react";
 
 type NewPost = {
   title: string;
@@ -21,7 +22,7 @@ const Write = () => {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
   const [progress, setProgress] = useState(0);
-  const [cover, setCover] = useState<string>("");
+  const [cover, setCover] = useState<UploadResponse>();
 
   const mutation = useMutation<any, Error, NewPost>({
     mutationFn: async (newPost) => {
@@ -45,7 +46,7 @@ const Write = () => {
       category: formData.get("category") as string,
       desc: formData.get("desc") as string,
       content: value,
-      imageUrl: cover,
+      imageUrl: cover?.filePath || "",
     };
     mutation.mutate(newPost);
   };
@@ -66,7 +67,7 @@ const Write = () => {
 
         {cover && (
           <img
-            src={cover}
+            src={cover.url}
             alt="Cover preview"
             className="w-64 h-40 object-cover rounded-xl shadow-md"
           />
