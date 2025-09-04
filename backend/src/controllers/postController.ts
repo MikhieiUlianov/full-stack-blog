@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Post from "../models/post.js";
 import User from "../models/user.js";
+import Imagekit from "imagekit";
 
 interface AuthRequest extends Request {
   auth?: {
@@ -62,4 +63,30 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
     return res.status(403).json({ message: "You can delete only your post!" });
 
   res.status(200).json("Post has been deleted");
+};
+if (
+  !process.env.IK_URL_ENDPOINT ||
+  !process.env.IK_PUBLIC_KEY ||
+  !process.env.IK_PRIVATE_KEY
+) {
+  console.error("ImageKit environment variables are missing:");
+  console.log("IK_URL_ENDPOINT:", process.env.IK_URL_ENDPOINT);
+  console.log("IK_PUBLIC_KEY:", process.env.IK_PUBLIC_KEY);
+  console.log("IK_PRIVATE_KEY:", process.env.IK_PRIVATE_KEY);
+  throw new Error("ImageKit environment variables are missing.");
+}
+
+const imagekit = new Imagekit({
+  urlEndpoint: process.env.IK_URL_ENDPOINT,
+  publicKey: process.env.IK_PUBLIC_KEY,
+  privateKey: process.env.IK_PRIVATE_KEY,
+});
+
+export const uploadAuth = (req: AuthRequest, res: Response) => {
+  const authParams = imagekit.getAuthenticationParameters();
+  console.log("Auth params:", authParams);
+  res.send({
+    ...authParams,
+    publicKey: process.env.IK_PUBLIC_KEY,
+  });
 };

@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+dotenv.config();
 
 import express, { NextFunction, Request, Response } from "express";
 import { clerkMiddleware } from "@clerk/express";
@@ -21,10 +22,18 @@ app.use(
     origin: process.env.CLIENT_URL,
   })
 );
-dotenv.config();
 app.use(clerkMiddleware() as unknown as express.RequestHandler);
 app.use("/webhooks", webHooksRouter);
 app.use(express.json());
+
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 app.use("/users", userRouter);
 app.use("/comments", commentRouter);
