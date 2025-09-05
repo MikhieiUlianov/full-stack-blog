@@ -3,9 +3,14 @@ import Post from "../models/post.js";
 import User from "../models/user.js";
 import Imagekit from "imagekit";
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   auth?: {
     userId?: string;
+    sessionClaims: {
+      metadata: {
+        role: "admin" | "user";
+      };
+    };
   };
 }
 export const getPosts = async (req: Request, res: Response) => {
@@ -31,28 +36,33 @@ export const getPost = async (req: Request, res: Response) => {
   res.status(200).send(posts);
 };
 
-export const postPost = async (req: AuthRequest, res: Response) => {
+export const createPost = async (req: AuthRequest, res: Response) => {
   const clerkUserId = req.auth?.userId;
 
-  if (!clerkUserId)
-    return res.status(401).json({ message: "Not authenticated." });
+  if (!clerkUserId) {
+    return res.status(401).json("Not authenticated!");
+  }
+
   const user = await User.findOne({ clerkUserId });
 
-  if (!user) return res.status(401).json({ message: "User not found." });
+  if (!user) {
+    return res.status(404).json("User not found!");
+  }
 
-  let slug = req.body.title.replaca(/ /g, "-").toLowerCase();
+  let slug = req.body.title.replace(/ /g, "-").toLowerCase();
+
   let existingPost = await Post.findOne({ slug });
+
   let counter = 2;
 
   while (existingPost) {
     slug = `${slug}-${counter}`;
-
     existingPost = await Post.findOne({ slug });
-
     counter++;
   }
 
   const newPost = new Post({ user: user._id, slug, ...req.body });
+
   const post = await newPost.save();
   res.status(200).json(post);
 };
@@ -62,6 +72,13 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
 
   if (!clerkUserId)
     return res.status(401).json({ message: "Not authenticated." });
+
+  const role = req.auth?.sessionClaims.metadata.role || "user";
+
+  if (role === "admin") {
+    await Post.findByIdAndDelete(req.params.id);
+    return res.status(200).json("Post has been deleted");
+  }
 
   const user = await User.findOne({ clerkUserId });
 
@@ -77,15 +94,45 @@ export const deletePost = async (req: AuthRequest, res: Response) => {
 
   res.status(200).json("Post has been deleted");
 };
+
+export const featurePost = async (req: AuthRequest, res: Response) => {
+  const clerkUserId = req.auth?.userId;
+  const postId = req.body.postId;
+
+  if (!clerkUserId) {
+    return res.status(401).json("Not authenticated!");
+  }
+
+  const role = req.auth?.sessionClaims?.metadata?.role || "user";
+
+  if (role !== "admin") {
+    return res.status(403).json("You cannot feature posts!");
+  }
+
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    return res.status(404).json("Post not found!");
+  }
+
+  const isFeatured = post.isFeatured;
+
+  const updatedPost = await Post.findByIdAndUpdate(
+    postId,
+    {
+      isFeatured: !isFeatured,
+    },
+    { new: true }
+  );
+
+  res.status(200).json(updatedPost);
+};
+
 if (
   !process.env.IK_URL_ENDPOINT ||
   !process.env.IK_PUBLIC_KEY ||
   !process.env.IK_PRIVATE_KEY
 ) {
-  console.error("ImageKit environment variables are missing:");
-  console.log("IK_URL_ENDPOINT:", process.env.IK_URL_ENDPOINT);
-  console.log("IK_PUBLIC_KEY:", process.env.IK_PUBLIC_KEY);
-  console.log("IK_PRIVATE_KEY:", process.env.IK_PRIVATE_KEY);
   throw new Error("ImageKit environment variables are missing.");
 }
 
@@ -97,7 +144,6 @@ const imagekit = new Imagekit({
 
 export const uploadAuth = (req: AuthRequest, res: Response) => {
   const authParams = imagekit.getAuthenticationParameters();
-  console.log("Auth params:", authParams);
   res.send({
     ...authParams,
     publicKey: process.env.IK_PUBLIC_KEY,

@@ -1,7 +1,6 @@
 import express from "express";
-import bodyParser from "body-parser";
-
 import { clerkWebHook } from "../controllers/webhook.js";
+import bodyParser from "body-parser";
 
 const router = express.Router();
 

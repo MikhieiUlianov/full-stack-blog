@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -16,8 +16,11 @@ const userSchema = new Schema(
       type: String,
     },
     savedPosts: {
-      type: String,
+      type: Array,
       default: [],
+    },
+    _id: {
+      type: Types.ObjectId,
     },
   },
   { timestamps: true }
