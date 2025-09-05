@@ -13,12 +13,65 @@ export interface AuthRequest extends Request {
     };
   };
 }
+
+interface PostQuery {
+  category?: string;
+  user?: string;
+  title?: { $regex: string; $options: string };
+  createdAt?: { $gte: Date };
+}
 export const getPosts = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 2;
 
-  const posts = await Post.find()
+  let query: PostQuery = {};
+
+  const cat = req.query.cat as string | undefined;
+  const author = req.query.author as string | undefined;
+  const searchQuery = req.query.searchQuery as string | undefined;
+  const sortQuery = req.query.sortQuery as string | undefined;
+  const featured = req.query.featured as string | undefined;
+
+  if (cat) query.category = cat;
+  if (searchQuery) query.title = { $regex: searchQuery, $options: "i" };
+  if (author) {
+    const user = await User.findOne({ username: author }).select("_id");
+
+    if (!user) return res.status(404).json("No post found!");
+
+    query.user = user._id?.toString();
+  }
+
+  type SortObj = Record<string, 1 | -1>;
+
+  let sortObj: SortObj = { createdAt: -1 };
+
+  if (sortQuery) {
+    switch (sortQuery) {
+      case "newest": //dec
+        sortObj = { createdAt: -1 };
+        break;
+      case "oldest": //inc
+        sortObj = { createdAt: 1 };
+        break;
+      case "popular":
+        sortObj = { visit: -1 };
+        break;
+      case "trending":
+        sortObj = { visit: -1 };
+        query.createdAt = {
+          $gte: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
+        };
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  const posts = await Post.find(query)
     .populate("user", "username")
+    .sort(sortObj)
     .limit(limit)
     .skip((page - 1) * limit);
   const totalPosts = await Post.countDocuments();
