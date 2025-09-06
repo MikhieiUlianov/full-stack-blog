@@ -13,10 +13,10 @@ export type CommentType = {
     savedPosts: string;
     img?: string | null | undefined;
   };
-  post: Post;
+  post: Post | string;
   desc: string;
   _id: string;
-  createdAt: string;
+  createdAt: Date;
 };
 
 const Comment = ({

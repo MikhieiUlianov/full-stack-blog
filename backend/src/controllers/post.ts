@@ -19,6 +19,7 @@ interface PostQuery {
   user?: string;
   title?: { $regex: string; $options: string };
   createdAt?: { $gte: Date };
+  isFeatured?: boolean;
 }
 export const getPosts = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
@@ -68,6 +69,7 @@ export const getPosts = async (req: Request, res: Response) => {
         break;
     }
   }
+  if (featured) query.isFeatured = true;
 
   const posts = await Post.find(query)
     .populate("user", "username")

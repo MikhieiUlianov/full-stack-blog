@@ -1,8 +1,12 @@
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import Comment, { CommentType } from "./Comment";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
+
+interface NewComment {
+  desc: string | null;
+}
 
 const fetchComments = async (postId: string) => {
   const res = await axios.get(
@@ -15,6 +19,10 @@ const Comments = ({ postId }: { postId: string }) => {
   const { user } = useUser();
   const { getToken } = useAuth();
 
+  if (!user) {
+    return <p>You must be logged in to comment.</p>;
+  }
+
   const { isLoading, error, data } = useQuery({
     queryKey: ["comments", postId],
     queryFn: () => fetchComments(postId),
@@ -22,7 +30,7 @@ const Comments = ({ postId }: { postId: string }) => {
 
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  const mutation = useMutation<AxiosResponse, AxiosError, NewComment>({
     mutationFn: async (newComment) => {
       const token = await getToken();
       return axios.post(
@@ -38,22 +46,25 @@ const Comments = ({ postId }: { postId: string }) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
     },
-    onError: (error) => {
-      toast.error(error.response.data);
+    onError: (error: AxiosError) => {
+      if (error.response) {
+        toast.error(error.response.data as string);
+      } else {
+        toast.error("Something went wrong");
+      }
     },
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const formData = new FormData(e.currentTarget);
 
-    const data = {
-      desc: formData.get("desc"),
+    const data: NewComment = {
+      desc: formData.get("desc") as string | null,
     };
 
     mutation.mutate(data);
   };
-
   return (
     <div className="flex flex-col gap-8 lg:w-3/5 mb-12">
       <h1 className="text-xl text-gray-500 underline">Comments</h1>
@@ -79,13 +90,18 @@ const Comments = ({ postId }: { postId: string }) => {
           {mutation.isPending && (
             <Comment
               comment={{
-                desc: `${mutation.variables.desc} (Sending...)`,
+                _id: "optimistic-id",
+                post: postId,
+                desc: `${mutation.variables?.desc} (Sending...)`,
                 createdAt: new Date(),
                 user: {
+                  clerkUserId: user.id,
+                  username: user.username ?? "Anonymous",
+                  savedPosts: "",
                   img: user.imageUrl,
-                  username: user.username,
                 },
               }}
+              postId={postId}
             />
           )}
 
